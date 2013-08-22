@@ -77,7 +77,7 @@
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
 enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
 enum { NetSupported, NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation,
-	   NetWMName, NetWMState, NetWMFullscreen, NetActiveWindow, NetWMWindowType,
+	   NetWMName, NetWMState, NetWMFullscreen, NetWMWindowOpacity, NetActiveWindow, NetWMWindowType,
 	   NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { Manager, Xembed, XembedInfo, XLast }; /* Xembed atoms */enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
 enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
@@ -113,6 +113,7 @@ struct Client {
 	Client *snext;
 	Monitor *mon;
 	Window win;
+	double opacity;
 };
 
 typedef struct {
@@ -155,6 +156,7 @@ typedef struct {
 	unsigned int tags;
 	Bool isfloating;
 	int monitor;
+	double opacity;
 } Rule;
 
 typedef struct Systray   Systray;
@@ -188,6 +190,7 @@ static void drawbar(Monitor *m);
 static void drawbars(void);
 static void enternotify(XEvent *e);
 static void expose(XEvent *e);
+static void window_opacity_set(Client *c, double opacity);
 static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
@@ -332,6 +335,7 @@ applyrules(Client *c) {
 		&& (!r->instance || strstr(instance, r->instance)))
 		{
 			c->isfloating = r->isfloating;
+			c->opacity = r->opacity;
 			c->tags |= r->tags;
 			for(m = mons; m && m->num != r->monitor; m = m->next);
 			if(m)
@@ -867,12 +871,26 @@ expose(XEvent *e) {
 }
 
 void
+window_opacity_set(Client *c, double opacity) {
+	if(opacity >= 0 && opacity <= 1) {
+		unsigned long real_opacity[] = { opacity * 0xffffffff };
+		XChangeProperty(dpy, c->win, netatom[NetWMWindowOpacity], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)real_opacity, 1);
+	}
+	else
+		XDeleteProperty(dpy, c->win, netatom[NetWMWindowOpacity]);
+}
+
+void
 focus(Client *c) {
 	if(!c || !ISVISIBLE(c))
 		for(c = selmon->stack; c && !ISVISIBLE(c); c = c->snext);
 	/* was if(selmon->sel) */
 	if(selmon->sel && selmon->sel != c)
 		unfocus(selmon->sel, False);
+
+	if(selmon->sel && c!=selmon->sel && c && (!root || (selmon->sel->win!=root && c->win!=root)) ) window_opacity_set(selmon->sel, shade);
+	if(c && c!=selmon->sel && (!root || (c->win!=root)) ) window_opacity_set(c, c->opacity);
+
 	if(c) {
 		if(c->mon != selmon)
 			selmon = c->mon;
@@ -890,6 +908,7 @@ focus(Client *c) {
 	}
 	selmon->sel = c;
 	drawbars();
+	if(c) window_opacity_set(c, c->opacity);
 }
 
 void
@@ -1126,6 +1145,7 @@ manage(Window w, XWindowAttributes *wa) {
 		c->mon = selmon;
 		applyrules(c);
 	}
+	c->opacity=-1;
 	/* geometry */
 	c->x = c->oldx = wa->x;
 	c->y = c->oldy = wa->y;
@@ -1663,6 +1683,9 @@ setup(void) {
 
 	/* clean up any zombies immediately */
 	sigchld(0);
+	
+	/* prepare clean shutdown */
+	signal(SIGTERM, quit);
 
 	/* init screen */
 	screen = DefaultScreen(dpy);
@@ -1685,6 +1708,7 @@ setup(void) {
 	netatom[NetSystemTrayOP] = XInternAtom(dpy, "_NET_SYSTEM_TRAY_OPCODE", False);
 	netatom[NetSystemTrayOrientation] = XInternAtom(dpy, "_NET_SYSTEM_TRAY_ORIENTATION", False);
 	netatom[NetWMName] = XInternAtom(dpy, "_NET_WM_NAME", False);
+	netatom[NetWMWindowOpacity] = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
 	netatom[NetWMState] = XInternAtom(dpy, "_NET_WM_STATE", False);
 	netatom[NetWMFullscreen] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
 	netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
