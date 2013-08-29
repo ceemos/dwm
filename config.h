@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const char font[]            = "-*-terminus-medium-r-*-*-14-*-*-*-*-*-*-*";
+static const char font[]            = "Droid Sans Mono:pixelsize=14";
 static const char normbordercolor[] = "#222222";
 static const char normbgcolor[]     = "#222222";
 static const char normfgcolor[]     = "#bbbbbb";
@@ -18,7 +18,7 @@ static const Bool showbar           = True;     /* False means no bar */
 static const Bool topbar            = True;     /* False means bottom bar */
 
 /* tagging */
-static const char *tags[] = { "h", "j", "k", "l" };
+static const char *tags[] = { "y_web", "x_work", "c_com", "v_misc" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -27,8 +27,9 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor   opacity */
 	{ "Gimp",     NULL,       NULL,       0,            True,        -1,       -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       False,       -1,       -1 },
-	{ "pa-vol",   NULL,       NULL,       0,            True,       -1,       0.5  },
+	{ "st-256color","pa-vol", NULL,       0,            True,        -1,       0.5 },
+	{ "Geary",    NULL,       NULL,       4,            False,        1,       -1 },
+	{ "Kadu",     NULL,       NULL,       4,            False,        0,       -1 },
 };
 
 /* layout(s) */
@@ -56,7 +57,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[]   = { "dmenu_run", /*"-m", dmenumon,*/ "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
+static const char *dmenucmd[]   = { "dmenu_run", /*"-m", dmenumon, "-fn", font,*/ "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
 static const char *termcmd[]    = { "st", NULL };
 //static const char *volcmd[]     = { "st", "-g", "900x200+2000", "-c", "pa-vol", "-f", "Terminus:pixelsize=16:style=Medium", "-e", "pulseaudio-mixer-cli", NULL };
 static const char *volcmd[]     = { "sh", "-c", "pa-vol", NULL };
@@ -64,9 +65,7 @@ static const char *surfcmd[]    = { "sh", "-c", "gosurf", NULL };
 
 static Key keys[] = {
 	/* modifier                     key               function        argument */
-	{ MODKEY,                       XK_x,             spawn,          {.v = dmenucmd } },
 	{ 0,                            XK_KP_Multiply,   spawn,          {.v = dmenucmd } },
-	{ MODKEY,                       XK_c,             spawn,          {.v = termcmd } },
 	{ 0,                            XK_KP_Add,        spawn,          {.v = surfcmd } },
 	{ MODKEY,                       XK_plus,          spawn,          {.v = surfcmd } },
 	{ 0,                            XK_KP_Divide,     spawn,          {.v = termcmd } },
@@ -95,10 +94,11 @@ static Key keys[] = {
 	{ 0,                            XK_KP_Insert,     tagmon,         {.i = +1 } },
 	{ MODKEY,                       XK_KP_Insert,     focusmon,       {.i = +1 } },
 	{ ControlMask,                  XK_KP_Insert,     focusmon,       {.i = +1 } },
-	TAGKEYS(                        XK_h,                      0)
-	TAGKEYS(                        XK_j,                      1)
-	TAGKEYS(                        XK_k,                      2)
-	TAGKEYS(                        XK_l,                      3)
+	{ MODKEY | ShiftMask,           XK_m,             focusmon,       {.i = +1 } },
+	TAGKEYS(                        XK_y,                      0)
+	TAGKEYS(                        XK_x,                      1)
+	TAGKEYS(                        XK_c,                      2)
+	TAGKEYS(                        XK_v,                      3)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };
 

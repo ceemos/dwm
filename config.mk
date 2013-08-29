@@ -15,8 +15,9 @@ XINERAMALIBS  = -lXinerama
 XINERAMAFLAGS = -DXINERAMA
 
 # includes and libs
-INCS = -I${X11INC}
-LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS}
+INCS = -I${X11INC} \
+       `pkg-config --cflags xft`
+LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} -lXft
 
 # flags
 CPPFLAGS = -D_BSD_SOURCE -D_POSIX_C_SOURCE=2 -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
@@ -29,4 +30,4 @@ LDFLAGS  = -s ${LIBS}
 #LDFLAGS = ${LIBS}
 
 # compiler and linker
-CC = cc
+CC = clang
