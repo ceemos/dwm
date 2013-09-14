@@ -61,6 +61,7 @@ static const char *dmenucmd[]   = { "dmenu_run", /*"-m", dmenumon, "-fn", font,*
 static const char *termcmd[]    = { "st", NULL };
 //static const char *volcmd[]     = { "st", "-g", "900x200+2000", "-c", "pa-vol", "-f", "Terminus:pixelsize=16:style=Medium", "-e", "pulseaudio-mixer-cli", NULL };
 static const char *volcmd[]     = { "sh", "-c", "pa-vol", NULL };
+static const char *calcmd[]     = { "sh", "-c", "showcal", NULL };
 static const char *surfcmd[]    = { "sh", "-c", "gosurf", NULL };
 
 static Key keys[] = {
@@ -108,11 +109,13 @@ static Button buttons[] = {
 	/* click                event mask      button          function        argument */
 	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
 	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
+	{ ClkWinTitle,          0,              Button1,        zoom,           {0} },
 	{ ClkWinTitle,          0,              Button2,        killclient,     {0} },
 	{ ClkWinTitle,          0,              Button4,        focusstack,     {.i = +1} },
 	{ ClkWinTitle,          0,              Button5,        focusstack,     {.i = -1} },
 	{ ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
 	{ ClkStatusText,        0,              Button1,        spawn,          {.v = volcmd  } },
+	{ ClkStatusText,        0,              Button3,        spawn,          {.v = calcmd  } },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
