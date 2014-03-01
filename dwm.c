@@ -49,6 +49,7 @@
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
 #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
+#define ISPANEL(C)              (ISVISIBLE(C) && c->isdock)
 #define LENGTH(X)               (sizeof X / sizeof X[0])
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
@@ -483,6 +484,9 @@ buttonpress(XEvent *e) {
 	}
 	else if((c = wintoclient(ev->window))) {
 		focus(c);
+		/* loosing this event is a problem on touchscreens */
+		XSendEvent(dpy, c->win, True, 0, e);
+		
 		click = ClkClientWin;
 	}
 	for(i = 0; i < LENGTH(buttons); i++)
@@ -888,7 +892,7 @@ window_opacity_set(Client *c, double opacity) {
 void
 focus(Client *c) {
 	if(!c || !ISVISIBLE(c))
-		for(c = selmon->stack; c && (!ISVISIBLE(c) || c->neverfocus); c = c->snext);
+		for(c = selmon->stack; c && (!ISVISIBLE(c) || c->neverfocus || ISPANEL(c)); c = c->snext);
 	/* was if(selmon->sel) */
 	if(selmon->sel && selmon->sel != c)
 		unfocus(selmon->sel, False);
@@ -911,7 +915,17 @@ focus(Client *c) {
 		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 		XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
 	}
-	selmon->sel = c;
+	
+	if(c == 0 || !ISPANEL(c))
+		/* do not select panel, it would break zoom() from virtual keyboard */
+		selmon->sel = c;
+	else {
+		/* do not highlight panel, leave  borders as-is instead */
+		if(selmon->sel)
+			XSetWindowBorder(dpy, selmon->sel->win, scheme[SchemeSel].border->rgb);
+		XSetWindowBorder(dpy, c->win, scheme[SchemeNorm].border->rgb);
+	}
+	
 	drawbars();
 	if(c) window_opacity_set(c, c->opacity);
 }
@@ -946,19 +960,19 @@ focusstack(const Arg *arg) {
 		return;
 	if(arg->i > 0) {
 		for(c = selmon->sel->next; c && (!ISVISIBLE(c) \
-				|| c->isdock); c = c->next);
+				|| ISPANEL(c)); c = c->next);
 		if(!c) {
 			for(c = selmon->clients; c && (!ISVISIBLE(c) \
-					|| c->isdock); c = c->next);
+					|| ISPANEL(c)); c = c->next);
 		}
 	}
 	else {
 		for(i = selmon->clients; i != selmon->sel; i = i->next)
-			if(ISVISIBLE(i) && !i->isdock)
+			if(ISVISIBLE(i) && !ISPANEL(i))
 				c = i;
 		if(!c)
 			for(; i; i = i->next)
-				if(ISVISIBLE(i) && !i->isdock)
+				if(ISVISIBLE(i) && !ISPANEL(i))
 					c = i;
 	}
 	if(c) {
@@ -1234,7 +1248,7 @@ monocle(Monitor *m) {
 	Client *c;
 
 	for(c = m->clients; c; c = c->next)
-		if(ISVISIBLE(c))
+		if(ISVISIBLE(c) && !ISPANEL(c))
 			n++;
 	if(n > 0) /* override layout symbol */
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
@@ -1317,7 +1331,7 @@ movemouse(const Arg *arg) {
 
 Client *
 nexttiled(Client *c) {
-	for(; c && (c->isfloating || !ISVISIBLE(c) || c->isdock); c = c->next);
+	for(; c && (c->isfloating || !ISVISIBLE(c) || ISPANEL(c)); c = c->next);
 	return c;
 }
 
@@ -1519,7 +1533,7 @@ restack(Monitor *m) {
 		wc.stack_mode = Below;
 		wc.sibling = m->barwin;
 		for(c = m->stack; c; c = c->snext)
-			if(!c->isfloating && ISVISIBLE(c)) {
+			if(!c->isfloating && ISVISIBLE(c) && !ISPANEL(c)) {
 				XConfigureWindow(dpy, c->win, CWSibling|CWStackMode, &wc);
 				wc.sibling = c->win;
 			}
@@ -2230,7 +2244,6 @@ updatewindowtype(Client *c) {
 		c->isfloating = True;
 	if(wtype == netatom[NetWMWindowTypeDock]) {
 		c->isdock = 1;
-		c->neverfocus = True;
 		c->tags = 0xFFFFFFFF;
 		updatebarpos(c->mon);
 	}
