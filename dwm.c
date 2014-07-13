@@ -128,6 +128,7 @@ typedef struct {
 
 typedef struct {
 	const char *symbol;
+	Bool addgaps;
 	void (*arrange)(Monitor *);
 } Layout;
 
@@ -310,8 +311,7 @@ static Drw *drw;
 static Fnt *fnt;
 static Monitor *mons, *selmon;
 static Window root;
-static int globalborder ;
-static int globalborder ;
+static int gap;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -525,7 +525,7 @@ checkotherwm(void) {
 void
 cleanup(void) {
 	Arg a = {.ui = ~0};
-	Layout foo = { "", NULL };
+	Layout foo = { "", False, NULL };
 	Monitor *m;
 
 	view(&a);
@@ -1454,17 +1454,12 @@ resizebarwin(Monitor *m) {
 void
 resizeclient(Client *c, int x, int y, int w, int h) {
 	XWindowChanges wc;
-	
-	if(c->isfloating || selmon->lt[selmon->sellt]->arrange == NULL) { globalborder = 0 ; }
-	else {
-		if (selmon->lt[selmon->sellt]->arrange == monocle) { globalborder = 0 - borderpx ; }
-		else { globalborder =  gappx ; }
-	}
 
-	c->oldx = c->x; c->x = wc.x = x + globalborder ;
-	c->oldy = c->y; c->y = wc.y = y + globalborder ;
-	c->oldw = c->w; c->w = wc.width = w - 2 * globalborder ;
-	c->oldh = c->h; c->h = wc.height = h - 2 * globalborder ;
+	gap = c->isfloating ? 0 : c->mon->lt[c->mon->sellt]->addgaps ? gappx : 0;
+	c->oldx = c->x; c->x = wc.x = x + gap;
+	c->oldy = c->y; c->y = wc.y = y + gap;
+	c->oldw = c->w; c->w = wc.width = w - (gap ? (x + w + (c->bw * 2) == c->mon->mx + c->mon->mw ? 2 : 1) * gap : 0);
+	c->oldh = c->h; c->h = wc.height = h - (gap ? (y + h + (c->bw * 2) == c->mon->my + c->mon->mh ? 2 : 1) * gap : 0);
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
@@ -1858,12 +1853,12 @@ tile(Monitor *m) {
 		if(i < m->nmaster) {
 			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
 			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), False);
-			my += HEIGHT(c);
+			my += HEIGHT(c) + gap;
 		}
 		else {
 			h = (m->wh - ty) / (n - i);
 			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), False);
-			ty += HEIGHT(c);
+			ty += HEIGHT(c) + gap;
 		}
 }
 

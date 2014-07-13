@@ -8,8 +8,8 @@ static const char normfgcolor[]     = "#bbbbbb";
 static const char selbordercolor[]  = "#00DDFF";
 static const char selbgcolor[]      = "#005577";
 static const char selfgcolor[]      = "#eeeeee";
-static const unsigned int gappx     = 4;        /* gap pixel between windows */
-static const unsigned int borderpx  = 3;        /* border pixel of windows */
+static const unsigned int borderpx  = 2;        /* border pixel of windows */
+static const unsigned int gappx     = 6;        /* gap pixel between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const unsigned int systrayspacing = 2;   /* systray spacing */
 static const Bool showsystray       = True;     /* False means no systray */
@@ -35,10 +35,10 @@ static const int nmaster      = 1;    /* number of clients in master area */
 static const Bool resizehints = True; /* True means respect size hints in tiled resizals */
 
 static const Layout layouts[] = {
-	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
-	{ "><>",      NULL },    /* no layout function means floating behavior */
-	{ "[M]",      monocle },
+	/* symbol  addgaps   arrange function */
+	{ "[]=",   1,        tile },    /* first entry is default */
+	{ "><>",   0,        NULL },    /* no layout function means floating behavior */
+	{ "[M]",   0,        monocle },
 };
 
 /* key definitions */
@@ -54,13 +54,23 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[]   = { "dmenu_run", /*"-m", dmenumon, "-fn", font,*/ "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *termcmd[]    = { "st", NULL };
-static const char *kbdcmd[]     = { "sh", "-c", "killall svkbd-de || svkbd-de -d -g 1920x400", NULL };
+static const char *dmenucmd[]    = { "dmenu_run", /*"-m", dmenumon, "-fn", font,*/ "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
+static const char *termcmd[]     = { "st", NULL };
+static const char *kbdcmd[]      = { "sh", "-c", "killall svkbd-de || svkbd-de -d -g 1920x400", NULL };
 static const char *ctrlcmd[]     = { "sh", "-c", "killall svkbd-ctrl || svkbd-ctrl -d -g 1920x100+0+20", NULL };
-static const char *surfcmd[]    = { "sh", "-c", "gosurf", NULL };
-static const char *suspendcmd[] = { "systemctl", "suspend", NULL};
+static const char *surfcmd[]     = { "sh", "-c", "gosurf", NULL };
+static const char *turncmd[]     = { "sh", "-c", "turn", NULL };
+static const char *suspendcmd[]  = { "systemctl", "suspend", NULL};
 static const char *domiddlecmd[] = { "xdotool", "click", "2", NULL };
+
+static const char *unmutecmd[]  = {"amixer", "-c", "0", "--", "sset", "Speaker", "64", NULL };
+static const char *volupcmd[]   = {"amixer", "-c", "0", "--", "sset", "Master", "10dB+", NULL };
+static const char *voldowncmd[] = {"amixer", "-c", "0", "--", "sset", "Master", "10dB-", NULL };
+static const char *lightcmd[]   = {"sh", "-c", "light-toggle", NULL };
+
+
+#define XF86AudioLowerVolume 0x1008ff11
+#define XF86AudioRaiseVolume 0x1008ff13
 
 static Key keys[] = {
 	/* modifier                     key               function        argument */
@@ -71,16 +81,21 @@ static Key keys[] = {
 	{ 0,                            XK_Print,         spawn,          {.v = termcmd } },
 	{ 0,                            XK_KP_Multiply,   spawn,          {.v = dmenucmd } },
 	{ 0,                            XK_KP_Divide,     spawn,          {.v = termcmd } },
-	
+	{ 0,                            XK_KP_Left,       spawn,          {.v = turncmd } },
+
+	{ 0,                            XK_Help,       spawn,          {.v = lightcmd } },	
 	{ 0,                            XK_Menu,          spawn,          {.v = domiddlecmd } },     
+	{ 0,                        XF86AudioRaiseVolume, spawn,          {.v = unmutecmd } },
+	{ 0,                        XF86AudioRaiseVolume, spawn,          {.v = volupcmd } },
+	{ 0,                        XF86AudioLowerVolume, spawn,          {.v = voldowncmd } },
 
 	{ MODKEY,                       XK_b,             togglebar,      {0} },
 	{ MODKEY,                       XK_Down,          focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_Up,            focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,             incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,             incnmaster,     {.i = -1 } },
-	{ MODKEY,                       XK_Right,         setmfact,       {.f = -0.05} },
-	{ MODKEY,                       XK_Left,          setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_Right,         setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_Left,          setmfact,       {.f = -0.05} },
 	{ 0,                            XK_KP_Delete,     focusstack,     {.i = +1 } },
 	{ 0,                            XK_KP_Next,       focusstack,     {.i = -1 } },
 	{ 0,                            XK_KP_Prior,      incnmaster,     {.i = +1 } },
@@ -98,7 +113,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_t,             setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,             setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,             setlayout,      {.v = &layouts[2]} },
-	{ 0,                            XK_KP_Left,       togglefloating, {0} },
+// 	{ 0,                            XK_KP_Left,       togglefloating, {0} },
 	{ MODKEY,                       XK_0,             view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,             tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,         focusmon,       {.i = -1 } },
