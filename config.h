@@ -9,7 +9,7 @@ static const char selbordercolor[]  = "#00DDFF";
 static const char selbgcolor[]      = "#005577";
 static const char selfgcolor[]      = "#eeeeee";
 static const unsigned int borderpx  = 2;        /* border pixel of windows */
-static const unsigned int gappx     = 6;        /* gap pixel between windows */
+static const unsigned int gappx     = 8;        /* gap pixel between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const unsigned int systrayspacing = 2;   /* systray spacing */
 static const Bool showsystray       = True;     /* False means no systray */
@@ -36,9 +36,9 @@ static const Bool resizehints = True; /* True means respect size hints in tiled 
 
 static const Layout layouts[] = {
 	/* symbol  addgaps   arrange function */
-	{ "[]=",   1,        tile },    /* first entry is default */
-	{ "><>",   0,        NULL },    /* no layout function means floating behavior */
-	{ "[M]",   0,        monocle },
+	{ "[]=",   True,     tile },    /* first entry is default */
+	{ "><>",   False,    NULL },    /* no layout function means floating behavior */
+	{ "[M]",   False,    monocle },
 };
 
 /* key definitions */
