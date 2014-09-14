@@ -36,6 +36,7 @@ static const Bool resizehints = True; /* True means respect size hints in tiled 
 
 static const Layout layouts[] = {
 	/* symbol  addgaps   arrange function */
+	{ "|||",   True,     col  },
 	{ "[]=",   True,     tile },    /* first entry is default */
 	{ "><>",   False,    NULL },    /* no layout function means floating behavior */
 	{ "[M]",   False,    monocle },
@@ -108,11 +109,12 @@ static Key keys[] = {
 	{ 0,                            XK_Pause,         killclient,     {0} },
 	{ 0,                            XK_KP_Subtract,   killclient,     {0} },
 	{ 0,                            XK_KP_Begin,      setlayout,      {.v = &layouts[0]} },
-	{ 0,                            XK_KP_Home,       setlayout,      {.v = &layouts[1]} },
-	{ 0,                            XK_KP_Up,         setlayout,      {.v = &layouts[2]} },
-	{ MODKEY,                       XK_t,             setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,             setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,             setlayout,      {.v = &layouts[2]} },
+	{ 0,                            XK_KP_Home,       setlayout,      {.v = &layouts[2]} },
+	{ 0,                            XK_KP_Up,         setlayout,      {.v = &layouts[3]} },
+	{ MODKEY,                       XK_t,             setlayout,      {.v = &layouts[1]} },
+	{ MODKEY,                       XK_f,             setlayout,      {.v = &layouts[2]} },
+	{ MODKEY,                       XK_m,             setlayout,      {.v = &layouts[3]} },
+	{ MODKEY,                       XK_c,             setlayout,      {.v = &layouts[0]} },
 // 	{ 0,                            XK_KP_Left,       togglefloating, {0} },
 	{ MODKEY,                       XK_0,             view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,             tag,            {.ui = ~0 } },
