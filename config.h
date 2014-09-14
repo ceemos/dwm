@@ -64,8 +64,8 @@ static const char *suspendcmd[]  = { "systemctl", "suspend", NULL};
 static const char *domiddlecmd[] = { "xdotool", "click", "2", NULL };
 
 static const char *unmutecmd[]  = {"amixer", "-c", "0", "--", "sset", "Speaker", "64", NULL };
-static const char *volupcmd[]   = {"amixer", "-c", "0", "--", "sset", "Master", "10dB+", NULL };
-static const char *voldowncmd[] = {"amixer", "-c", "0", "--", "sset", "Master", "10dB-", NULL };
+static const char *volupcmd[]   = {"amixer", "--", "sset", "Master", "20%+", NULL };
+static const char *voldowncmd[] = {"amixer", "--", "sset", "Master", "20%-", NULL };
 static const char *lightcmd[]   = {"sh", "-c", "light-toggle", NULL };
 
 
@@ -103,7 +103,7 @@ static Key keys[] = {
 	{ 0,                            XK_KP_End,        setmfact,       {.f = -0.05} },
 	{ 0,                            XK_KP_Down,       setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_space,         zoom,           {0} },
-	{ 0,				XK_KP_Enter,      zoom, 	  {0} },
+	{ 0,                            XK_KP_Enter,      zoom,           {0} },
 	{ MODKEY,                       XK_Tab,           focusstack,     {.i = +1 } },
 	{ 0,                            XK_Pause,         killclient,     {0} },
 	{ 0,                            XK_KP_Subtract,   killclient,     {0} },
@@ -141,8 +141,16 @@ static Button buttons[] = {
 	{ ClkWinTitle,          0,              Button2,        killclient,     {0} },
 	{ ClkWinTitle,          0,              Button4,        focusstack,     {.i = +1} },
 	{ ClkWinTitle,          0,              Button5,        focusstack,     {.i = -1} },
+	{ ClkWinTitle,          0,                    6,        zoom,           {0} },
+	{ ClkWinTitle,          0,                    7,        tagmon,         {.i = +1} },
+	{ ClkWinTitle,          0,                    8,        zoom,           {0} },
+	{ ClkWinTitle,          0,                    9,        tagmon,         {.i = +1} },
 	{ ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
 	{ ClkStatusText,        0,              Button1,        spawn,          {.v = kbdcmd  } },
+	{ ClkStatusText,        0,                    6,        spawn,          {.v = voldowncmd } },
+	{ ClkStatusText,        0,                    7,        spawn,          {.v = volupcmd  } },
+	{ ClkStatusText,        0,                    8,        spawn,          {.v = voldowncmd } },
+	{ ClkStatusText,        0,                    9,        spawn,          {.v = volupcmd  } },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
